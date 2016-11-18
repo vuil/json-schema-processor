@@ -8,4 +8,5 @@ cat /cell/config-default.json >> /cell/DESC.md
 
 echo "## Configuration Parameters" >> /cell/DESC.md
 cat /cell/schema-input.json.md >> /cell/DESC.md
+mdv /cell/DESC.md > /cell/DESC.txt
 
