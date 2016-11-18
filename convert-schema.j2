@@ -1,0 +1,41 @@
+{#
+jinja2 template for converting cello cell input schema json files to markdown
+this version of the template generates markdown that should render correctly
+by the terminal markdown viewer https://pypi.python.org/pypi/mdv/1.0.0
+#}
+
+{% macro extras(d) -%}
+  {% for k in d %}{% if k not in ["description", "type", "default"] %}{{k}}:{{d[k]}} {% endif %}{% endfor %}
+{%- endmacro %}
+
+{% macro isreq(p,l) -%}
+   {% if p in l %} (*) {%endif%}
+{%- endmacro %}
+
+{% macro esc(v) -%}
+   {{v|replace("|","&#124;")}}
+{%- endmacro %}
+
+{% macro escc(v) -%}
+   {{v|capitalize|replace("|","&#124;")}}
+{%- endmacro %}
+
+NAME (* DENOTES REQUIRED CONFIGURATION) |DESCRIPTION |TYPE |DEFAULT |CONSTRAINTS
+----------------------------------------|------------|-----|--------|-----------
+{% for p,v in properties.iteritems() %}
+   {%if not v.properties %}
+      {{esc(p)}}{{isreq(p, required)}} |{{ v.description }} |{{ v.type }} |{{ v.default }} |{{ esc(extras(v)) }}
+   {%else%}
+      {{escc(v.description)}}{{isreq(p, required)}}||||
+      {% for pp,vv in v.properties.iteritems() %}
+         {%if not vv.properties %}
+           : {{esc(p)}}.{{esc(pp)}}{{isreq(pp, v.required)}} |{{ vv.description }} |{{ vv.type }} |{{ vv.default }} |{{ escc(extras(vv)) }}
+         {%else%}
+           - {{ escc(vv.description) }}{{isreq(pp, v.required)}}||||
+           {% for ppp,vvv in vv.properties.iteritems() %}
+           :: {{esc(p)}}.{{esc(pp)}}.{{esc(ppp)}}{{isreq(ppp, vv.required)}} |{{ vvv.description }} |{{ vvv.type }} |{{ vvv.default }} |{{ esc(extras(vvv)) }}
+           {% endfor %}
+         {%endif %}
+      {% endfor %}
+   {%endif %}
+{% endfor %}
